@@ -1,8 +1,13 @@
 function Square(props){
+    let classname;
+    if(props.isHilight)
+        classname='squareHilight';
+    else
+        classname='square';
     return (
-      <button className="square" onClick={() => {props.onClick();}}>
-        {props.value}
-      </button>
+        <button className={classname} onClick={() => {props.onClick();}}>
+          {props.value}
+        </button>
     );
 }
 

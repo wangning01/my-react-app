@@ -11,47 +11,20 @@ class Game extends React.Component {
         }],
         xIsNext: true,
         stepNumber: 0,
-        isMoveInAscOrder: true
+        isMoveInAscOrder: true,
       }
     }
 
     render() {
-        const history = this.state.history;
-        const current = history[this.state.stepNumber];
-        const winner = this.calculateWinner(current.squares);
-    
-        const moves = history.map((step, move) => {
-          let isSelected = this.state.stepNumber === move ? true : false;
-          const squareIndex = step.squareIndex;
-          const row = Math.floor(squareIndex/3) + 1;
-          const col = squareIndex%3 + 1;
-          const desc = move ? 'Go to move #' + move + '(row:'+row + ',col:' + col + ')': 'Go to game start';
-          return (
-            <li key={move}>
-              <button onClick={() => {this.jumpTo(move)} }>
-                 {isSelected ?  (<b> {desc} </b>) : desc }
-              </button>
-            </li>
-          );
-        });
 
-        let toggledMoves;
-        if(this.state.isMoveInAscOrder){
-            toggledMoves = moves;
-        }else{
-            toggledMoves = moves.slice().reverse();
-        }
-    
-        let status;
-        if(winner){
-          status = 'Winner ' + winner;
-        }else{
-          status = 'Next player ' + (this.state.xIsNext ? 'X' : 'O');
-        }
+        let squares = this.computeSquares();
+        let toggledMoves = this.computeToggledMoves();
+        let status = this.computeStatus();
+        
         return (
           <div className="game">
             <div className="game-board">
-              <Board squares={current.squares} onClick={ (i) => {this.handleClick(i)}} />
+              <Board squares={squares} onClick={ (i) => {this.handleClick(i)}} />
             </div>
             <div className="game-info">
               <div>{status}</div>
@@ -60,6 +33,62 @@ class Game extends React.Component {
             </div>
           </div>
         );
+    }
+
+    computeSquares(){
+        const history = this.state.history;
+        const current = history[this.state.stepNumber];
+        return current.squares;
+    }
+
+    computeStatus(){
+        const history = this.state.history;
+        const current = history[this.state.stepNumber];
+        const winner = this.calculateWinner(current.squares);
+        let status;
+        if(winner){
+            let [a, b, c] = winner;
+            status = 'Winner ' + current.squares[a].value;
+        }else if(this.isAllSquaresFilled(current.squares)){
+            status = 'Darw. NO WINNER';
+        }else{
+            status = 'Next player ' + (this.state.xIsNext ? 'X' : 'O');
+        }
+        return status;
+
+    }
+
+    computeToggledMoves(){
+        const history = this.state.history;
+        const moves = history.map((step, move) => {
+            let isSelected = this.state.stepNumber === move ? true : false;
+            const squareIndex = step.squareIndex;
+            const row = Math.floor(squareIndex/3) + 1;
+            const col = squareIndex%3 + 1;
+            const desc = move ? 'Go to move #' + move + '(row:'+row + ',col:' + col + ')': 'Go to game start';
+            return (
+              <li key={move}>
+                <button onClick={() => {this.jumpTo(move)} }>
+                   {isSelected ?  (<b> {desc} </b>) : desc }
+                </button>
+              </li>
+            );
+          });
+  
+          let toggledMoves;
+          if(this.state.isMoveInAscOrder){
+              toggledMoves = moves;
+          }else{
+              toggledMoves = moves.slice().reverse();
+          }
+          return toggledMoves;
+
+    }
+
+    isAllSquaresFilled(squares){
+        let result = true;
+        squares.forEach(s => {if(!s.value) result = false; });
+        return result;
     }
 
     reverseMoves(){
@@ -82,7 +111,7 @@ class Game extends React.Component {
         this.setState({
             history: history.concat([{squares: squares, squareIndex: i}]), 
             xIsNext: !this.state.xIsNext,
-            stepNumber: history.length
+            stepNumber: history.length,
         })
     }
   
